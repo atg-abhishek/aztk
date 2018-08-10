@@ -3,16 +3,24 @@ import sys
 import time
 
 import aztk.spark
+import yaml
 from aztk.error import AztkError
 
 # set your secrets
+SECRETS_FILE_PATH = '' #TODO: Needs to be set by the user
+yaml_tree = {}
+with open(SECRETS_FILE_PATH, 'r') as infile:
+    yaml_tree = yaml.load(infile)
+
+service_principal = yaml_tree['service_principal']
+
 secrets_configuration = aztk.spark.models.SecretsConfiguration(
     service_principal=aztk.spark.models.ServicePrincipalConfiguration(
-        tenant_id="<org>.onmicrosoft.com",
-        client_id="",
-        credential="",
-        batch_account_resource_id="",
-        storage_account_resource_id="",
+        tenant_id=service_principal['tenant_id'],
+        client_id=service_principal['client_id'],
+        credential=service_principal['credential'],
+        batch_account_resource_id=service_principal['batch_account_resource_id'],
+        storage_account_resource_id=service_principal['storage_account_resource_id'],
     ),
     ssh_pub_key="")
 
