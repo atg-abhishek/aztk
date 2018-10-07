@@ -1,6 +1,8 @@
-from aztk.error import InvalidModelError
-from aztk.utils import constants, deprecate
+import re
+
 from aztk.core.models import Model, fields
+from aztk.error import InvalidModelError
+from aztk.utils import constants
 
 
 class ToolkitDefinition:
@@ -23,8 +25,8 @@ TOOLKIT_MAP = dict(
             r=ToolkitEnvironmentDefinition(),
             miniconda=ToolkitEnvironmentDefinition(),
             anaconda=ToolkitEnvironmentDefinition(),
-        )),
-)
+        ),
+    ))
 
 
 class Toolkit(Model):
@@ -38,6 +40,7 @@ class Toolkit(Model):
         environment (str): Which environment to use for this toolkit
         environment_version (str): If there is multiple version for an environment you can specify which one
         docker_repo (str): Optional docker repo
+        docker_run_options (str): Optional command-line options for `docker run`
     """
 
     software = fields.String()
@@ -45,6 +48,7 @@ class Toolkit(Model):
     environment = fields.String(default=None)
     environment_version = fields.String(default=None)
     docker_repo = fields.String(default=None)
+    docker_run_options = fields.String(default=None)
 
     def __validate__(self):
         if self.software not in TOOLKIT_MAP:
@@ -56,8 +60,6 @@ class Toolkit(Model):
         if self.version not in toolkit_def.versions:
             raise InvalidModelError("Toolkit '{0}' with version '{1}' is not available. Use one of: {2}".format(
                 self.software, self.version, toolkit_def.versions))
-        if self.version == "1.6":
-            deprecate("0.9.0", "Spark version 1.6 is being deprecated for Aztk.", "Please use 2.1 and above.")
 
         if self.environment:
             if self.environment not in toolkit_def.environments:
@@ -71,16 +73,24 @@ class Toolkit(Model):
                     "Environment '{0}' version '{1}' for toolkit '{2}' is not available. Use one of: {3}".format(
                         self.environment, self.environment_version, self.software, env_def.versions))
 
+        if self.docker_run_options:
+            invalid_character = re.search(r'[^A-Za-z0-9 _./:=\-"]', self.docker_run_options)
+            if invalid_character:
+                raise InvalidModelError(
+                    "Docker run options contains invalid character '{0}'. Only A-Z, a-z, 0-9, space, hyphen (-), "
+                    "underscore (_), period (.), forward slash (/), colon (:), equals(=), comma (,), and "
+                    'double quote (") are allowed.'.format(invalid_character.group(0)))
+
     def get_docker_repo(self, gpu: bool):
         if self.docker_repo:
             return self.docker_repo
 
         repo = "aztk/{0}".format(self.software)
 
-        return "{repo}:{tag}".format(
-            repo=repo,
-            tag=self._get_docker_tag(gpu),
-        )
+        return "{repo}:{tag}".format(repo=repo, tag=self._get_docker_tag(gpu))
+
+    def get_docker_run_options(self):
+        return self.docker_run_options
 
     def _get_docker_tag(self, gpu: bool):
         environment = self.environment or "base"
@@ -96,7 +106,7 @@ class Toolkit(Model):
 
         array.append("gpu" if gpu else "base")
 
-        return '-'.join(array)
+        return "-".join(array)
 
     def _get_environment_definition(self) -> ToolkitEnvironmentDefinition:
         toolkit = TOOLKIT_MAP.get(self.software)

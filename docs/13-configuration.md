@@ -22,6 +22,8 @@ toolkit:
   # Optional docker repository(To bring your custom docker image. Just specify the Toolkit software, version and environment if using default images)
   # docker_repo: <name of docker image repo (for more information, see https://github.com/Azure/aztk/blob/master/docs/12-docker-image.md)>
 
+  # Optional command line options to pass to `docker run`
+  # docker_run_options: <additional command line options to pass to `docker run` (for more information, see https://github.com/Azure/aztk/blob/master/docs/12-docker-image.md)>
 
 # vm_size: <vm-size, see available options here: https://azure.microsoft.com/pricing/details/batch//>
 vm_size: standard_a2
@@ -45,12 +47,14 @@ plugins:
 # Allow master node to also be a worker <true/false> (Default: true)
 # worker_on_master: true
 
-# Where do you want to run the driver <dedicated/master/any> (Default: dedicated if at least one dedicated node or any otherwise)
-# scheduling_target: dedicated
 
 # wait: <true/false>
 wait: true
 ```
+<!--- this goes about wait: true
+# Where do you want to run the driver <dedicated/master/any> (Default: dedicated if at least one dedicated node or any otherwise)
+# scheduling_target: dedicated
+-->
 
 Running `aztk spark cluster create` will create a cluster of 4 **Standard\_A2** nodes called 'spark\_cluster' with a linux user named 'spark'. This is equivalent to running the command
 

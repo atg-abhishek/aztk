@@ -2,7 +2,7 @@
 
 # Entry point for the start task. It will install all dependencies and start docker.
 # Usage:
-# setup_host.sh [container_name] [docker_repo_name]
+# setup_host.sh [container_name] [docker_repo_name] [docker_run_options]
 set -e
 
 export AZTK_WORKING_DIR=/mnt/batch/tasks/startup/wd
@@ -10,6 +10,7 @@ export PYTHONUNBUFFERED=TRUE
 
 container_name=$1
 docker_repo_name=$2
+docker_run_options=$3
 
 install_prerequisites () {
     echo "Installing pre-reqs"
@@ -41,7 +42,9 @@ install_prerequisites () {
 
 install_docker_compose () {
     echo "Installing Docker-Compose"
-    sudo curl -L https://github.com/docker/compose/releases/download/1.19.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+    for i in {1..5}; do 
+        sudo curl -L https://github.com/docker/compose/releases/download/1.19.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose && break || sleep 2; 
+    done
     sudo chmod +x /usr/local/bin/docker-compose
     echo "Finished installing Docker-Compose"
 }
@@ -62,10 +65,9 @@ pull_docker_container () {
 
 install_python_dependencies () {
     echo "Installing python dependencies"
-    pipenv install --python /usr/bin/python3.5m
-    pipenv run pip install --upgrade setuptools wheel #TODO: add pip when pipenv is compatible with pip10
+    pipenv install --python /usr/bin/python3.5m --ignore-pipfile
+    pip --version
     echo "Finished installing python dependencies"
-
 }
 
 run_docker_container () {
@@ -79,7 +81,7 @@ run_docker_container () {
         echo "Creating docker container."
 
         echo "Running setup python script"
-        $AZTK_WORKING_DIR/.aztk-env/.venv/bin/python $(dirname $0)/main.py setup-node $docker_repo_name
+        $AZTK_WORKING_DIR/.aztk-env/.venv/bin/python $(dirname $0)/main.py setup-node $docker_repo_name "$docker_run_options"
 
         # wait until container is running
         until [ "`/usr/bin/docker inspect -f {{.State.Running}} $container_name`"=="true" ]; do
@@ -139,7 +141,8 @@ main () {
     # set up aztk python environment
     export LC_ALL=C.UTF-8
     export LANG=C.UTF-8
-    python3 -m pip install pipenv
+    # ensure these packages are  compatibile before upgrading
+    python3 -m pip install pip=="18.0" pipenv=="2018.7.1"
     mkdir -p $AZTK_WORKING_DIR/.aztk-env
     cp $AZTK_WORKING_DIR/aztk/node_scripts/Pipfile $AZTK_WORKING_DIR/.aztk-env
     cp $AZTK_WORKING_DIR/aztk/node_scripts/Pipfile.lock $AZTK_WORKING_DIR/.aztk-env

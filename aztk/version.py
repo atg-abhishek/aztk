@@ -22,14 +22,9 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 major = 0
-minor = 8
+minor = 9
 patch = 1
 
-suffix = ''
+suffix = ""
 
-__version__ = "{major}.{minor}.{patch}{suffix}".format(
-    major=major,
-    minor=minor,
-    patch=patch,
-    suffix=suffix,
-)
+__version__ = "{major}.{minor}.{patch}{suffix}".format(major=major, minor=minor, patch=patch, suffix=suffix)

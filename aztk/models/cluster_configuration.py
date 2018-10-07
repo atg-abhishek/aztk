@@ -1,13 +1,13 @@
 import aztk.error as error
 from aztk.core.models import Model, fields
-from aztk.utils import deprecated, deprecate, helpers
+from aztk.utils import helpers
 
 from .custom_script import CustomScript
 from .file_share import FileShare
 from .plugins import PluginConfiguration
+# from .scheduling_target import SchedulingTarget
 from .toolkit import Toolkit
 from .user_configuration import UserConfiguration
-from .scheduling_target import SchedulingTarget
 
 
 class ClusterConfiguration(Model):
@@ -35,42 +35,13 @@ class ClusterConfiguration(Model):
 
     subnet_id = fields.String(default=None)
     plugins = fields.List(PluginConfiguration)
-    custom_scripts = fields.List(CustomScript)
     file_shares = fields.List(FileShare)
     user_configuration = fields.Model(UserConfiguration, default=None)
-    scheduling_target = fields.Enum(SchedulingTarget, default=None)
+
+    # scheduling_target = fields.Enum(SchedulingTarget, default=None)
 
     def __init__(self, *args, **kwargs):
-        if 'vm_count' in kwargs:
-            deprecate("0.9.0", "vm_count is deprecated for ClusterConfiguration.", "Please use size instead.")
-            kwargs['size'] = kwargs.pop('vm_count')
-
-        if 'vm_low_pri_count' in kwargs:
-            deprecate("vm_low_pri_count is deprecated for ClusterConfiguration.",
-                      "Please use size_low_priority instead.")
-            kwargs['size_low_priority'] = kwargs.pop('vm_low_pri_count')
-
         super().__init__(*args, **kwargs)
-
-    @property
-    @deprecated("0.9.0")
-    def vm_count(self):
-        return self.size
-
-    @vm_count.setter
-    @deprecated("0.9.0")
-    def vm_count(self, value):
-        self.size = value
-
-    @property
-    @deprecated("0.9.0")
-    def vm_low_pri_count(self):
-        return self.size_low_priority
-
-    @vm_low_pri_count.setter
-    @deprecated("0.9.0")
-    def vm_low_pri_count(self, value):
-        self.size_low_priority = value
 
     def mixed_mode(self) -> bool:
         """
@@ -85,11 +56,14 @@ class ClusterConfiguration(Model):
     def get_docker_repo(self):
         return self.toolkit.get_docker_repo(self.gpu_enabled())
 
+    def get_docker_run_options(self) -> str:
+        return self.toolkit.get_docker_run_options()
+
     def __validate__(self) -> bool:
         if self.size == 0 and self.size_low_priority == 0:
             raise error.InvalidModelError(
-                "Please supply a valid (greater than 0) size or size_low_priority value either in the cluster.yaml configuration file or with a parameter (--size or --size-low-pri)"
-            )
+                "Please supply a valid (greater than 0) size or size_low_priority value either "
+                "in the cluster.yaml configuration file or with a parameter (--size or --size-low-priority)")
 
         if self.vm_size is None:
             raise error.InvalidModelError(
@@ -97,12 +71,8 @@ class ClusterConfiguration(Model):
 
         if self.mixed_mode() and not self.subnet_id:
             raise error.InvalidModelError(
-                "You must configure a VNET to use AZTK in mixed mode (dedicated and low priority nodes). Set the VNET's subnet_id in your cluster.yaml."
-            )
+                "You must configure a VNET to use AZTK in mixed mode (dedicated and low priority nodes). "
+                "Set the VNET's subnet_id in your cluster.yaml or with a parameter (--subnet-id).")
 
-        if self.custom_scripts:
-            deprecate("0.9.0", "Custom scripts are DEPRECATED.",
-                      "Use plugins instead. See https://aztk.readthedocs.io/en/v0.7.0/15-plugins.html.")
-
-        if self.scheduling_target == SchedulingTarget.Dedicated and self.size == 0:
-            raise error.InvalidModelError("Scheduling target cannot be Dedicated if dedicated vm size is 0")
+        # if self.scheduling_target == SchedulingTarget.Dedicated and self.size == 0:
+        #     raise error.InvalidModelError("Scheduling target cannot be Dedicated if dedicated vm size is 0")

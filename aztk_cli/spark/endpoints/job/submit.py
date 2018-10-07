@@ -8,16 +8,18 @@ from aztk_cli.config import JobConfig
 
 def setup_parser(parser: argparse.ArgumentParser):
     parser.add_argument(
-        '--id',
-        dest='job_id',
+        "--id",
+        dest="job_id",
         required=False,
-        help='The unique id of your Spark Job. Defaults to the id value in .aztk/job.yaml')
+        help="The unique id of your Spark Job. Defaults to the id value in .aztk/job.yaml",
+    )
     parser.add_argument(
-        '--configuration',
-        '-c',
-        dest='job_conf',
+        "--configuration",
+        "-c",
+        dest="job_conf",
         required=False,
-        help='Path to the job.yaml configuration file. Defaults to .aztk/job.yaml')
+        help="Path to the job.yaml configuration file. Defaults to .aztk/job.yaml",
+    )
 
 
 def execute(args: typing.NamedTuple):
@@ -39,7 +41,6 @@ def execute(args: typing.NamedTuple):
     job_configuration = aztk.spark.models.JobConfiguration(
         id=job_conf.id,
         applications=job_conf.applications,
-        custom_scripts=job_conf.custom_scripts,
         spark_configuration=spark_configuration,
         vm_size=job_conf.vm_size,
         toolkit=job_conf.toolkit,
@@ -47,8 +48,8 @@ def execute(args: typing.NamedTuple):
         max_low_pri_nodes=job_conf.max_low_pri_nodes,
         subnet_id=job_conf.subnet_id,
         worker_on_master=job_conf.worker_on_master,
-        scheduling_target=job_conf.scheduling_target,
+    # scheduling_target=job_conf.scheduling_target,
     )
 
-    #TODO: utils.print_job_conf(job_configuration)
+    # TODO: utils.print_job_conf(job_configuration)
     spark_client.job.submit(job_configuration)

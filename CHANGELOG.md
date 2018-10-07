@@ -1,5 +1,38 @@
 # Changelog
 
+##  0.9.1 (2018-10-5)
+**Bug Fixes**
+* Fix: pin all node dependencies not in Pipfile (#667) ([0606598](https://github.com/Azure/aztk/commit/0606598)), closes [#667](https://github.com/Azure/aztk/issues/667)
+* Fix: vsts integration tests block (#657) ([4a60c8a](https://github.com/Azure/aztk/commit/4a60c8a)), closes [#657](https://github.com/Azure/aztk/issues/657)
+* Fix: vsts mutliline secrets (#668) ([cb62207](https://github.com/Azure/aztk/commit/cb62207)), closes [#668](https://github.com/Azure/aztk/issues/668)
+
+##  0.9.0 (2018-08-30)
+
+**Breaking Changes**
+* spark roll back scheduling disable (#653) ([93615d9](https://github.com/Azure/aztk/commit/93615d9)), closes [#653](https://github.com/Azure/aztk/issues/653)
+* remove custom scripts (#650) ([442228a](https://github.com/Azure/aztk/commit/442228a)), closes [#650](https://github.com/Azure/aztk/issues/650)
+* 0.9.0 deprecated code removal (#645) ([eef36dc](https://github.com/Azure/aztk/commit/eef36dc)), closes [#645](https://github.com/Azure/aztk/issues/645)
+* SDK refactor (#622) ([b18eb69](https://github.com/Azure/aztk/commit/b18eb69)), closes [#622](https://github.com/Azure/aztk/issues/622)
+
+**Features**
+* Add ability to specify docker run options in toolkit config (#613) ([9d554c3](https://github.com/Azure/aztk/commit/9d554c3)), closes [#613](https://github.com/Azure/aztk/issues/613) [#3](https://github.com/Azure/aztk/issues/3)
+* add brief flag to debug tool (#634) ([b7bdd8c](https://github.com/Azure/aztk/commit/b7bdd8c)), closes [#634](https://github.com/Azure/aztk/issues/634)
+* first run docs update (#644) ([9098533](https://github.com/Azure/aztk/commit/9098533)), closes [#644](https://github.com/Azure/aztk/issues/644)
+* SDK refactor (#622) ([b18eb69](https://github.com/Azure/aztk/commit/b18eb69)), closes [#622](https://github.com/Azure/aztk/issues/622)
+
+**Bug Fixes**
+* diagnostics function write error result bug (#649) ([293f297](https://github.com/Azure/aztk/commit/293f297)), closes [#649](https://github.com/Azure/aztk/issues/649)
+* expose get cluster configuration API (#648) ([7c14648](https://github.com/Azure/aztk/commit/7c14648)), closes [#648](https://github.com/Azure/aztk/issues/648)
+* remove bad node scripts import (#652) ([0a9ce94](https://github.com/Azure/aztk/commit/0a9ce94)), closes [#652](https://github.com/Azure/aztk/issues/652)
+* typo in vsts build (#654) ([7c37b06](https://github.com/Azure/aztk/commit/7c37b06)), closes [#654](https://github.com/Azure/aztk/issues/654)
+* update incompatible dependencies in setup.py (#639) ([f98d037](https://github.com/Azure/aztk/commit/f98d037)), closes [#639](https://github.com/Azure/aztk/issues/639)
+
+**Internal Changes**
+* fix pylint warnings (#651) ([828162e](https://github.com/Azure/aztk/commit/828162e)), closes [#651](https://github.com/Azure/aztk/issues/651)
+* update vsts build (#635) ([6eda21e](https://github.com/Azure/aztk/commit/6eda21e)), closes [#635](https://github.com/Azure/aztk/issues/635)
+* verify code formatting in build (#633) ([7730c46](https://github.com/Azure/aztk/commit/7730c46)), closes [#633](https://github.com/Azure/aztk/issues/633)
+
+
 ##  0.8.1 (2018-06-20)
 
 **Bug Fixes**

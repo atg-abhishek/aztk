@@ -11,13 +11,20 @@ To select an image other than the default, you can set your Docker image at clus
 aztk spark cluster create ... --docker-repo <name_of_docker_image_repo>
 ```
 
-For example, if I wanted to use Spark v2.2.0, I could run the following cluster create command:
+To customize Docker configuration, you can pass command line options to the `docker run` command with the optional **--docker-run-options** parameter:
+
 ```sh
-aztk spark cluster create ... --docker-repo aztk/base:spark1.6.3
+aztk spark cluster create ... "--docker-run-options=<command_line_options_for_docker_run>"
+```
+
+For example, if I wanted to use Spark v2.2.0 and start my container in privileged mode and with a kernel memory limit of 100MB,
+I could run the following cluster create command:
+```sh
+aztk spark cluster create ... --docker-repo aztk/base:spark2.2.0 "--docker-run-options=--privileged --kernel-memory 100m"
 ```
 
 ## Using a custom Docker Image
-You can build your own Docker image on top or beneath one of our supported base images _OR_ you can modify the [supported Dockerfiles](https://github.com/Azure/aztk/tree/v0.8.1/docker-image) and build your own image that way.
+You can build your own Docker image on top or beneath one of our supported base images _OR_ you can modify the [supported Dockerfiles](https://github.com/Azure/aztk/tree/v0.9.1/docker-image) and build your own image that way.
 
 Once you have your Docker image built and hosted publicly, you can then use the **--docker-repo** parameter in your **aztk spark cluster create** command to point to it.
 

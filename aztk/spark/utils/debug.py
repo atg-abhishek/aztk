@@ -6,6 +6,7 @@ import io
 import json
 import os
 import socket
+import sys
 import tarfile
 from subprocess import STDOUT, CalledProcessError, check_output
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -14,16 +15,24 @@ import docker    # pylint: disable=import-error
 
 
 def main():
-    zipf = create_zip_archive()
-
-    # general node diagnostics
-    zipf.writestr("hostname.txt", data=get_hostname())
-    zipf.writestr("df.txt", data=get_disk_free())
+    brief = sys.argv[1] == "True"
 
     # docker container diagnostics
     docker_client = docker.from_env()
-    for filename, data in get_docker_diagnostics(docker_client):
-        zipf.writestr(filename, data=data)
+
+    zipf = create_zip_archive()
+
+    if brief:
+        for filename, data in get_brief_diagnostics():
+            print("writing {} to zip", filename)
+            zipf.writestr(filename, data=data)
+    else:
+        # general node diagnostics
+        zipf.writestr("hostname.txt", data=get_hostname())
+        zipf.writestr("df.txt", data=get_disk_free())
+
+        for filename, data in get_docker_diagnostics(docker_client):
+            zipf.writestr(filename, data=data)
 
     zipf.close()
 
@@ -41,9 +50,7 @@ def cmd_check_output(cmd):
     try:
         output = check_output(cmd, shell=True, stderr=STDOUT)
     except CalledProcessError as e:
-        return "CMD: {0}\n"\
-               "returncode: {1}"\
-               "output: {2}".format(e.cmd, e.returncode, e.output)
+        return "CMD: {0}\n" "returncode: {1}" "output: {2}".format(e.cmd, e.returncode, e.output)
     else:
         return output
 
@@ -53,9 +60,9 @@ def get_disk_free():
 
 
 def get_docker_diagnostics(docker_client):
-    '''
+    """
         returns list of tuples (filename, data) to be written in the zip
-    '''
+    """
     output = []
     output.append(get_docker_images(docker_client))
     logs = get_docker_containers(docker_client)
@@ -86,7 +93,7 @@ def get_docker_containers(docker_client):
             # get docker container logs
             logs.append((container.name + "/docker.log", container.logs()))
             logs.append(get_docker_process_status(container))
-            if container.name == "spark":    #TODO: find a more robust way to get specific info off specific containers
+            if container.name == "spark":    # TODO: find a more robust way to get specific info off specific containers
                 logs.extend(get_container_aztk_script(container))
                 logs.extend(get_spark_logs(container))
                 logs.extend(get_spark_app_logs(container))
@@ -99,7 +106,7 @@ def get_docker_containers(docker_client):
 
 def get_docker_process_status(container):
     try:
-        exit_code, output = container.exec_run("ps -auxw", tty=True, privileged=True)
+        exit_code, output = container.exec_run("ps faux", privileged=True)
         out_file_name = container.name + "/ps_aux.txt"
         if exit_code == 0:
             return (out_file_name, output)
@@ -149,13 +156,27 @@ def filter_members(members):
 
 
 def extract_tar_in_memory(container, data):
-    data = io.BytesIO(b''.join([item for item in data]))
+    data = io.BytesIO(b"".join([item for item in data]))
     tarf = tarfile.open(fileobj=data)
     logs = []
     for member in filter_members(tarf):
         file_bytes = tarf.extractfile(member)
         if file_bytes is not None:
-            logs.append((container.name + "/" + member.name, b''.join(file_bytes.readlines())))
+            logs.append((container.name + "/" + member.name, b"".join(file_bytes.readlines())))
+    return logs
+
+
+def get_brief_diagnostics():
+    batch_dir = "/mnt/batch/tasks/startup/"
+    files = ["stdout.txt", "stderr.txt", "wd/logs/docker.log"]
+    logs = []
+    for file_name in files:
+        try:
+            logs.append((file_name, open(batch_dir + file_name, "rb").read()))
+            # print("LOG:", (file_name, open(batch_dir+file_name, 'rb').read()))
+        except FileNotFoundError as e:
+            print("file not found", e)
+            logs.append((file_name, bytes(e.__str__(), encoding="utf-8")))
     return logs
 
 
